@@ -1,4 +1,4 @@
-import { prop } from '@typegoose/typegoose';
+import { prop, Ref } from '@typegoose/typegoose';
 import { convertToTypegooseClassWithOptions, createTypegooseProviders } from './typegoose.providers';
 import * as mongoose from 'mongoose';
 import * as typegoose from '@typegoose/typegoose';
@@ -12,6 +12,16 @@ const mockgoose: Mockgoose = new Mockgoose(mongoose);
 class MockUser {
   @prop()
   name: string;
+}
+
+class MockSpecialUser extends MockUser {
+  @prop()
+  special: boolean;
+}
+
+class MockExtraSpecialUser extends MockSpecialUser {
+  @prop()
+  otherUser: Ref<MockUser>;
 }
 
 class MockTask {
@@ -99,8 +109,63 @@ describe('createTypegooseProviders', () => {
     const providers = createTypegooseProviders(DEFAULT_DB_CONNECTION_NAME, models);
 
     expect(providers).toEqual([
+                                {
+                                  provide: 'MockUserModel',
+                                  useFactory: any(Function),
+                                  inject: [DEFAULT_DB_CONNECTION_NAME]
+                                },
+                                {
+                                  provide: 'MockTaskModel',
+                                  useFactory: any(Function),
+                                  inject: [DEFAULT_DB_CONNECTION_NAME]
+                                }
+                              ]);
+
+    const userProvider = providers[0];
+
+    const model = userProvider.useFactory(connection);
+
+    expect(model.prototype.model).toBeTruthy();
+  }, 15000);
+
+  it('should create typegoose providers from models with discriminators', () => {
+
+    jest.setTimeout(30000);
+
+    const customDiscriminatorId = 'extra';
+    const models = [
+      {
+        typegooseClass: MockUser,
+        discriminators: [
+          {
+            typegooseClass: MockSpecialUser,
+          },
+          {
+            typegooseClass: MockExtraSpecialUser,
+            discriminatorId: customDiscriminatorId
+          }
+        ]
+      },
+      {
+        typegooseClass: MockTask
+      }
+    ];
+
+    const providers = createTypegooseProviders(DEFAULT_DB_CONNECTION_NAME, models);
+
+    expect(providers).toEqual([
       {
         provide: 'MockUserModel',
+        useFactory: any(Function),
+        inject: [DEFAULT_DB_CONNECTION_NAME]
+      },
+      {
+        provide: 'MockSpecialUserModel',
+        useFactory: any(Function),
+        inject: [DEFAULT_DB_CONNECTION_NAME]
+      },
+      {
+        provide: 'MockExtraSpecialUserModel',
         useFactory: any(Function),
         inject: [DEFAULT_DB_CONNECTION_NAME]
       },
@@ -108,14 +173,27 @@ describe('createTypegooseProviders', () => {
         provide: 'MockTaskModel',
         useFactory: any(Function),
         inject: [DEFAULT_DB_CONNECTION_NAME]
-      }
+      },
     ]);
 
+    const specialProvider = providers[1];
+    const specialModel = specialProvider.useFactory(connection);
+
+    expect(specialModel.prototype.model).toBeTruthy();
+    expect(specialModel).toHaveProperty('schema.discriminatorMapping.value', MockSpecialUser.name);
+
+    const extraProvider = providers[2];
+    const extraModel = extraProvider.useFactory(connection);
+
+    expect(extraModel.prototype.model).toBeTruthy();
+    expect(extraModel).toHaveProperty('schema.discriminatorMapping.value', customDiscriminatorId);
+
     const userProvider = providers[0];
+    const userModel = userProvider.useFactory(connection);
 
-    const model = userProvider.useFactory(connection);
-
-    expect(model.prototype.model).toBeTruthy();
+    expect(userModel.prototype.model).toBeTruthy();
+    expect(userModel.discriminators).toHaveProperty(MockSpecialUser.name, specialModel);
+    expect(userModel.discriminators).toHaveProperty(MockExtraSpecialUser.name, extraModel);
   }, 15000);
 
   it('should create no providers if no models are given', () => {
