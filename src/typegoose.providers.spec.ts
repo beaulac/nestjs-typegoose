@@ -14,6 +14,11 @@ class MockUser {
   name: string;
 }
 
+class MockSpecialUser extends MockUser {
+  @prop()
+  special: boolean;
+}
+
 class MockTask {
   @prop()
   description: string;
@@ -89,6 +94,10 @@ describe('createTypegooseProviders', () => {
 
     const models = [
       {
+        typegooseClass: MockSpecialUser,
+        extendsClass: MockUser
+      },
+      {
         typegooseClass: MockUser
       },
       {
@@ -105,10 +114,15 @@ describe('createTypegooseProviders', () => {
         inject: [DEFAULT_DB_CONNECTION_NAME]
       },
       {
+        provide: 'MockSpecialUserModel',
+        useFactory: any(Function),
+        inject: [DEFAULT_DB_CONNECTION_NAME]
+      },
+      {
         provide: 'MockTaskModel',
         useFactory: any(Function),
         inject: [DEFAULT_DB_CONNECTION_NAME]
-      }
+      },
     ]);
 
     const userProvider = providers[0];
