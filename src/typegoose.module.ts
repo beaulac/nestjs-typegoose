@@ -1,9 +1,8 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { TypegooseCoreModule } from './typegoose-core.module';
-import { createTypegooseProviders } from './typegoose.providers';
+import { createTypegooseProviders, convertToTypegooseClassWithOptions } from './typegoose.providers';
 import { TypegooseClass, TypegooseClassWithOptions } from './typegoose-class.interface';
 import { TypegooseConnectionOptions, TypegooseModuleAsyncOptions } from './typegoose-options.interface';
-import { convertToTypegooseClassWithOptions } from './typegoose.utils';
 
 @Module({})
 export class TypegooseModule {

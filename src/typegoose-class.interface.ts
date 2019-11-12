@@ -10,7 +10,7 @@ export interface TypegooseClassWrapper {
 
 export interface TypegooseClassWithOptions extends TypegooseClassWrapper {
   schemaOptions?: SchemaOptions;
-  discriminators?: TypegooseDiscriminator[];
+  discriminators?: (TypegooseClass | TypegooseDiscriminator)[];
 }
 
 export interface TypegooseDiscriminator extends TypegooseClassWrapper {

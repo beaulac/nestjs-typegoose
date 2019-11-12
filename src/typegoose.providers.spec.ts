@@ -1,12 +1,11 @@
 import * as typegoose from '@typegoose/typegoose';
 import { prop, Ref } from '@typegoose/typegoose';
-import { createTypegooseProviders } from './typegoose.providers';
+import { createTypegooseProviders, convertToTypegooseClassWithOptions } from './typegoose.providers';
 import * as mongoose from 'mongoose';
 import { Connection } from 'mongoose';
 import { Mockgoose } from 'mockgoose';
 import { DEFAULT_DB_CONNECTION_NAME } from './typegoose.constants';
 import any = jasmine.any;
-import { convertToTypegooseClassWithOptions } from './typegoose.utils';
 
 const mockgoose: Mockgoose = new Mockgoose(mongoose);
 
