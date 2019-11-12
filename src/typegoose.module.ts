@@ -1,9 +1,9 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { TypegooseCoreModule } from './typegoose-core.module';
-
-import { convertToTypegooseClassWithOptions, createTypegooseProviders } from './typegoose.providers';
-import { TypegooseModel } from './typegoose-class.interface';
+import { createTypegooseProviders } from './typegoose.providers';
+import { TypegooseClass, TypegooseClassWithOptions } from './typegoose-class.interface';
 import { TypegooseConnectionOptions, TypegooseModuleAsyncOptions } from './typegoose-options.interface';
+import { convertToTypegooseClassWithOptions } from './typegoose.utils';
 
 @Module({})
 export class TypegooseModule {
@@ -24,7 +24,7 @@ export class TypegooseModule {
     };
   }
 
-  static forFeature(models: TypegooseModel[], connectionName?: string): DynamicModule {
+  static forFeature(models: (TypegooseClass | TypegooseClassWithOptions)[], connectionName?: string): DynamicModule {
     const convertedModels = models.map(model => convertToTypegooseClassWithOptions(model));
     const providers = createTypegooseProviders(connectionName, convertedModels);
     return {

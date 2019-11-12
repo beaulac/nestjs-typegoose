@@ -1,11 +1,12 @@
-import { prop, Ref } from '@typegoose/typegoose';
-import { convertToTypegooseClassWithOptions, createTypegooseProviders } from './typegoose.providers';
-import * as mongoose from 'mongoose';
 import * as typegoose from '@typegoose/typegoose';
+import { prop, Ref } from '@typegoose/typegoose';
+import { createTypegooseProviders } from './typegoose.providers';
+import * as mongoose from 'mongoose';
 import { Connection } from 'mongoose';
 import { Mockgoose } from 'mockgoose';
-import { DEFAULT_DB_CONNECTION_NAME, TYPEGOOSE_MODULE_OPTIONS, TYPEGOOSE_CONNECTION_NAME } from './typegoose.constants';
+import { DEFAULT_DB_CONNECTION_NAME } from './typegoose.constants';
 import any = jasmine.any;
+import { convertToTypegooseClassWithOptions } from './typegoose.utils';
 
 const mockgoose: Mockgoose = new Mockgoose(mongoose);
 
@@ -207,9 +208,10 @@ describe('createTypegooseProviders', () => {
   });
 });
 
-class MockTypegooseClass {}
-
 describe('convertToTypegooseClassWithOptions', () => {
+  class MockTypegooseClass {}
+  class MockDiscriminator {}
+
   it('returns model as typegooseClass if it is just a class', () => {
     expect(convertToTypegooseClassWithOptions(MockTypegooseClass)).toEqual({
       typegooseClass: MockTypegooseClass
@@ -230,9 +232,44 @@ describe('convertToTypegooseClassWithOptions', () => {
   it('throws error is not a class or not a TypegooseClassWithOptions', () => {
     const handler = () => {
       expect(convertToTypegooseClassWithOptions({
-        // @ts-ignore
-        something: 'different'
-      }));
+                                                  something: 'different'
+                                                } as any));
+    };
+
+    expect(handler).toThrowErrorMatchingSnapshot();
+  });
+
+  it('returns discriminator as typegooseClass if it is just a class', () => {
+    const options = {
+      typegooseClass: MockTypegooseClass,
+      discriminators: [MockDiscriminator]
+    };
+    const expected = {
+      typegooseClass: MockTypegooseClass,
+      discriminators: [{
+        typegooseClass: MockDiscriminator
+      }]
+    };
+    expect(convertToTypegooseClassWithOptions(options)).toEqual(expected);
+  });
+  it('returns discriminator with options if it is a TypegooseDiscriminator', () => {
+    const expected = {
+      typegooseClass: MockTypegooseClass,
+      discriminators: [{
+        typegooseClass: MockDiscriminator,
+        discriminatorId: 'test'
+      }]
+    };
+    expect(convertToTypegooseClassWithOptions(expected)).toEqual(expected);
+  });
+  it('throws error if discriminator is not a class or TypegooseDiscriminator', () => {
+    const handler = () => {
+      expect(convertToTypegooseClassWithOptions({
+                                                  typegooseClass: MockTypegooseClass,
+                                                  discriminators: [{
+                                                    something: 'different'
+                                                  }]
+                                                } as any));
     };
 
     expect(handler).toThrowErrorMatchingSnapshot();

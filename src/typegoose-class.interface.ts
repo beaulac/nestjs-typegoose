@@ -4,15 +4,15 @@ export interface TypegooseClass {
   new (...args: any[]);
 }
 
-export interface TypegooseClassWithOptions {
+export interface TypegooseClassWrapper {
   typegooseClass: TypegooseClass;
-  schemaOptions?: SchemaOptions;
-  discriminators?: (TypegooseClass | TypegooseDiscriminator)[];
 }
 
-export type TypegooseModel = TypegooseClass | TypegooseClassWithOptions;
+export interface TypegooseClassWithOptions extends TypegooseClassWrapper {
+  schemaOptions?: SchemaOptions;
+  discriminators?: TypegooseDiscriminator[];
+}
 
-export interface TypegooseDiscriminator {
-  typegooseClass: TypegooseClass;
+export interface TypegooseDiscriminator extends TypegooseClassWrapper {
   discriminatorId?: string;
 }

@@ -2,6 +2,7 @@ import { TypegooseModule } from './typegoose.module';
 import { TypegooseCoreModule as CoreModule } from './typegoose-core.module';
 import { prop } from '@typegoose/typegoose';
 import * as createProviders from './typegoose.providers';
+import * as utils from './typegoose.utils';
 
 class MockTask {
   @prop()
@@ -95,7 +96,7 @@ describe('TypegooseModule', () => {
         'convertedUser'
       ];
 
-      jest.spyOn(createProviders, 'convertToTypegooseClassWithOptions')
+      jest.spyOn(utils, 'convertToTypegooseClassWithOptions')
         .mockImplementation(() => {
           count += 1;
           return convertedModels[count];
@@ -110,8 +111,8 @@ describe('TypegooseModule', () => {
 
       const expectedProviders = 'createdProviders';
 
-      expect(createProviders.convertToTypegooseClassWithOptions).toHaveBeenCalledWith(MockTask);
-      expect(createProviders.convertToTypegooseClassWithOptions).toHaveBeenCalledWith({
+      expect(utils.convertToTypegooseClassWithOptions).toHaveBeenCalledWith(MockTask);
+      expect(utils.convertToTypegooseClassWithOptions).toHaveBeenCalledWith({
         typegooseClass: MockUser,
         schemaOptions: {
           collection: 'differentCollectionNameUser'

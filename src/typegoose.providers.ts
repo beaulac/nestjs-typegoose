@@ -1,41 +1,14 @@
-import { getConnectionToken, getModelToken, isTypegooseClass, isTypegooseClassWithOptions } from './typegoose.utils';
-import {
-  TypegooseClass,
-  TypegooseClassWithOptions,
-  TypegooseDiscriminator,
-  TypegooseModel,
-} from './typegoose-class.interface';
-import { Connection } from 'mongoose';
-import { getDiscriminatorModelForClass, getModelForClass } from '@typegoose/typegoose';
 import { FactoryProvider } from '@nestjs/common/interfaces';
+import { getDiscriminatorModelForClass, getModelForClass } from '@typegoose/typegoose';
+import { Connection } from 'mongoose';
+import { TypegooseClass, TypegooseClassWithOptions, TypegooseDiscriminator } from './typegoose-class.interface';
+import { getConnectionToken, getModelToken } from './typegoose.utils';
 
 type ModelFactory = (c: Connection) => any;
 
-const convertToDiscriminatorWithOptions = (item: TypegooseClass | TypegooseDiscriminator): TypegooseDiscriminator => {
-  if (isTypegooseClass(item)) {
-    return {
-      typegooseClass: item
-    };
-  } else if (isTypegooseClassWithOptions(item)) {
-    return item;
-  }
-  throw new Error('Invalid discriminator object');
-};
-
-export const convertToTypegooseClassWithOptions = (item: TypegooseModel): TypegooseClassWithOptions => {
-  if (isTypegooseClass(item)) {
-    return {
-      typegooseClass: item
-    };
-  } else if (isTypegooseClassWithOptions(item)) {
-    item.discriminators = (item.discriminators || []).map(convertToDiscriminatorWithOptions);
-    return item;
-  }
-  throw new Error('Invalid model object');
-};
-
 export function createTypegooseProviders(connectionName: string,
                                          models: TypegooseClassWithOptions[] = []): FactoryProvider[] {
+
   const connectionToken = getConnectionToken(connectionName);
 
   const buildProvider = ({ name }: TypegooseClass, modelFactory: ModelFactory) => ({
