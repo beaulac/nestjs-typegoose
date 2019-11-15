@@ -31,14 +31,24 @@ export function createTypegooseProviders(connectionName: string,
   return models.reduce(
     (providers, { typegooseClass, schemaOptions = {}, discriminators = [] }) => {
 
-      const modelFactory = (connection: Connection) => getModelForClass(
-        typegooseClass,
-        { existingConnection: connection, schemaOptions },
-      );
-
-      const modelProvider = buildProvider(typegooseClass, modelFactory);
+      const modelFactory = (connection: Connection) => {
+          return getModelForClass(
+              typegooseClass,
+              { existingConnection: connection, schemaOptions },
+          );
+      };
 
       const discriminatorProviders = discriminators.map(createDiscriminatorFactoryFrom(modelFactory));
+      const discriminatorFactories = discriminatorProviders.map(({useFactory}) => useFactory);
+
+      const parentFactory = (connection: Connection) => {
+          const model = modelFactory(connection);
+          // Ensure all the discriminators are initialized, if they weren't injected anywhere.
+          discriminatorFactories.forEach(df => df(connection));
+          return model;
+      };
+
+      const modelProvider = buildProvider(typegooseClass, parentFactory);
 
       return [...providers, modelProvider, ...discriminatorProviders];
     },
